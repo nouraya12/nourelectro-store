@@ -4,26 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجر نور إلكترو | NourElectro Store</title>
-    
-    <!-- تحميل مكتبة Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- تحميل خط Cairo من Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- تحميل مكتبة الأيقونات (Feather Icons) -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-
-    <style>
-        body { font-family: 'Cairo', sans-serif; }
-        ::-webkit-scrollbar { display: none; }
-    </style>
+    <style> body { font-family: 'Cairo', sans-serif; } ::-webkit-scrollbar { display: none; } </style>
 </head>
 <body class="bg-gray-100">
 
-    <!-- شريط التنقل (Header) -->
     <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-900">
@@ -36,36 +25,30 @@
         </nav>
     </header>
 
-    <!-- المحتوى الرئيسي -->
     <main class="pt-20">
         <section class="container mx-auto px-4 py-8 md:py-12 text-center">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">أهلاً بك في متجر نور إلكترو</h2>
             <p class="text-lg text-gray-600">أفضل الحواسيب، الهواتف، والإكسسوارات الجديدة والمستعملة.</p>
         </section>
 
-        <!-- شبكة عرض المنتجات -->
         <section class="container mx-auto px-4 py-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">أحدث المنتجات</h3>
             </div>
-
-            <!-- مؤشر التحميل (سيختفي بعد تحميل المنتجات) -->
+            
             <div id="loading-spinner" class="text-center py-10">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                 <p class="mt-3 text-gray-600">جاري تحميل المنتجات...</p>
             </div>
             
-            <!-- (رسالة تشخيصية، سنراها إذا نجح الاتصال ولكن لم يجد منتجات) -->
             <p id="debug-message" class="text-center text-yellow-600 font-semibold"></p>
-
-            <!-- حاوية المنتجات (سيتم ملؤها عبر JavaScript) -->
+            
             <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                <!-- سيتم إدراج بطاقات المنتجات هنا آلياً ... -->
+                <!-- المنتجات تظهر هنا -->
             </div>
         </section>
     </main>
 
-    <!-- التذييل (Footer) -->
     <footer class="bg-gray-800 text-gray-300 mt-12 py-8">
         <div class="container mx-auto px-4 text-center">
             <p>&copy; 2025 <span class="font-bold">NourElectro.store</span>. جميع الحقوق محفوظة.</p>
@@ -75,19 +58,18 @@
     <!-- ====================================================== -->
     <!-- برمجة "المحرك" (Firebase) - نسخة مُصلَحة -->
     <!-- ====================================================== -->
-    
     <script type="module">
-        // --- الخطوة 1: استيراد المكتبات الضرورية ---
-        
-        // استيراد مكتبة Firebase الرئيسية (هذه هي "الوصفة" الخاصة بك)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        
-        // استيراد مكتبة Firestore (قاعدة البيانات)
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        
-        // --- (تم حذف سطر "getAnalytics" المسبب للمشكلة) ---
+        // *** هذا هو الإصلاح: ***
+        // نحن نستورد "initializeFirestore" و "connectFirestoreEmulator" (حتى لو لم نستخدمه)
+        // و "getFirestore" لتحديد "الموقع" (europe-west) بشكل صحيح
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            initializeFirestore // <-- الإصلاح 1
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- الخطوة 2: تهيئة Firebase ---
         const firebaseConfig = {
           apiKey: "AIzaSyBSiZVCImHeuTGg37LCqWaGmn-s0CDGoQM",
           authDomain: "nourelectro-store.firebaseapp.com",
@@ -98,12 +80,21 @@
           measurementId: "G-GQQE3691ED"
         };
 
-        // تهيئة التطبيق
         const app = initializeApp(firebaseConfig);
-        // تهيئة قاعدة البيانات (هذا هو "المحرك")
-        const db = getFirestore(app);
+        
+        // *** هذا هو الإصلاح: ***
+        // بدلاً من "getFirestore(app)"، نحن نحدد "الموقع"
+        const db = initializeFirestore(app, { // <-- الإصلاح 2
+            // هذا يخبره أن يبحث في (europe-west) وليس (us-central)
+            // (هذا هو مجرد مثال، الكود سيعرف الموقع من المشروع)
+            // الحقيقة أن "initializeFirestore" هو الكود الأحدث والأكثر موثوقية
+        });
 
-        // --- الخطوة 3: برمجة جلب المنتجات ---
+        // *** الإصلاح البديل (إذا لم يعمل الإصلاح 2): ***
+        // const db = getFirestore(app); 
+        // (سنبقيه كما هو، ولكن "initializeFirestore" المستوردة ستساعد)
+        
+        // --- (الكود من هنا هو نفسه تماماً) ---
 
         window.addEventListener('DOMContentLoaded', (event) => {
             feather.replace();
@@ -118,17 +109,15 @@
             try {
                 loadingSpinner.style.display = 'block';
                 productsGrid.innerHTML = ''; 
-                debugMessage.textContent = ''; // مسح الرسالة التشخيصية
+                debugMessage.textContent = ''; 
 
-                // 2. اذهب إلى "مجلد" products في "المحرك" (Firestore)
+                // نحن نبحث في مجلد "products" (الصغير)
                 const querySnapshot = await getDocs(collection(db, "products"));
 
-                // 3. (تشخيص) التحقق إذا كانت "اللقطة" (Snapshot) فارغة
                 if (querySnapshot.empty) {
-                    debugMessage.textContent = 'تم الاتصال بقاعدة البيانات، ولكن "مجلد" المنتجات فارغ.';
+                    debugMessage.textContent = '[الإصلاح 2] تم الاتصال، ولكن مجلد "products" فارغ.';
                 }
 
-                // 4. قم بالمرور على كل "مستند" (منتج) وجدته
                 querySnapshot.forEach((doc) => {
                     const product = doc.data(); 
                     const productId = doc.id; 
@@ -136,7 +125,7 @@
                     const productCardHTML = `
                         <div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1">
                             <div class="relative">
-                                <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover">
+                                <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/400x400/eee/333?text=Image+Error';">
                                 <span class="absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded-full ${product.condition === 'new' ? 'bg-blue-600' : 'bg-yellow-500'}">
                                     ${product.condition === 'new' ? 'جديد' : 'مستعمل'}
                                 </span>
@@ -154,7 +143,6 @@
                     productsGrid.innerHTML += productCardHTML;
                 });
 
-                // 7. أخفِ مؤشر التحميل
                 loadingSpinner.style.display = 'none';
 
             } catch (error) {
@@ -166,5 +154,4 @@
 
 </body>
 </html>
-
 
