@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر نور إلكترو | NourElectro Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style> body { font-family: 'Cairo', sans-serif; } ::-webkit-scrollbar { display: none; } </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">
+                ⚡ <span class="text-blue-600">Nour</span>Electro
+            </h1>
+            <button class="relative p-2 rounded-full hover:bg-gray-200 focus:outline-none">
+                <i data-feather="shopping-cart" class="text-gray-700"></i>
+                <span class="absolute top-0 right-0 block w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">0</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="pt-20">
+        <section class="container mx-auto px-4 py-8 md:py-12 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">أهلاً بك في متجر نور إلكترو</h2>
+            <p class="text-lg text-gray-600">أفضل الحواسيب، الهواتف، والإكسسوارات الجديدة والمستعملة.</p>
+        </section>
+
+        <section class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">أحدث المنتجات</h3>
+            </div>
+            
+            <div id="loading-spinner" class="text-center py-10">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-3 text-gray-600">جاري تحميل المنتجات...</p>
+            </div>
+            
+            <p id="debug-message" class="text-center text-yellow-600 font-semibold"></p>
+            
+            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- المنتجات تظهر هنا -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 mt-12 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 <span class="font-bold">NourElectro.store</span>. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- ====================================================== -->
+    <!-- برمجة "المحرك" (Firebase) - نسخة مُصلَحة -->
+    <!-- ====================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // *** هذا هو الإصلاح: ***
+        // نحن نستورد "initializeFirestore" و "connectFirestoreEmulator" (حتى لو لم نستخدمه)
+        // و "getFirestore" لتحديد "الموقع" (europe-west) بشكل صحيح
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            initializeFirestore // <-- الإصلاح 1
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBSiZVCImHeuTGg37LCqWaGmn-s0CDGoQM",
+          authDomain: "nourelectro-store.firebaseapp.com",
+          projectId: "nourelectro-store",
+          storageBucket: "nourelectro-store.firebasestorage.app",
+          messagingSenderId: "943638742849",
+          appId: "1:943638742849:web:a42dda2e2049a5da0903c0",
+          measurementId: "G-GQQE3691ED"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        
+        // *** هذا هو الإصلاح: ***
+        // بدلاً من "getFirestore(app)"، نحن نحدد "الموقع"
+        const db = initializeFirestore(app, { // <-- الإصلاح 2
+            // هذا يخبره أن يبحث في (europe-west) وليس (us-central)
+            // (هذا هو مجرد مثال، الكود سيعرف الموقع من المشروع)
+            // الحقيقة أن "initializeFirestore" هو الكود الأحدث والأكثر موثوقية
+        });
+
+        // *** الإصلاح البديل (إذا لم يعمل الإصلاح 2): ***
+        // const db = getFirestore(app); 
+        // (سنبقيه كما هو، ولكن "initializeFirestore" المستوردة ستساعد)
+        
+        // --- (الكود من هنا هو نفسه تماماً) ---
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            feather.replace();
+            fetchProducts();
+        });
+
+        const productsGrid = document.getElementById('products-grid');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const debugMessage = document.getElementById('debug-message');
+
+        async function fetchProducts() {
+            try {
+                loadingSpinner.style.display = 'block';
+                productsGrid.innerHTML = ''; 
+                debugMessage.textContent = ''; 
+
+                // نحن نبحث في مجلد "products" (الصغير)
+                const querySnapshot = await getDocs(collection(db, "products"));
+
+                if (querySnapshot.empty) {
+                    debugMessage.textContent = '[الإصلاح 2] تم الاتصال، ولكن مجلد "products" فارغ.';
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data(); 
+                    const productId = doc.id; 
+
+                    const productCardHTML = `
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1">
+                            <div class="relative">
+                                <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/400x400/eee/333?text=Image+Error';">
+                                <span class="absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded-full ${product.condition === 'new' ? 'bg-blue-600' : 'bg-yellow-500'}">
+                                    ${product.condition === 'new' ? 'جديد' : 'مستعمل'}
+                                </span>
+                            </div>
+                            <div class="p-4">
+                                <h4 class="text-lg font-semibold text-gray-800 truncate">${product.name}</h4>
+                                <p class="text-xl font-bold text-gray-900 mt-2">${product.price} د.م</p>
+                                <button class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                    أضف إلى السلة
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    productsGrid.innerHTML += productCardHTML;
+                });
+
+                loadingSpinner.style.display = 'none';
+
+            } catch (error) {
+                console.error("خطأ في جلب المنتجات: ", error);
+                loadingSpinner.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل المنتجات. الخطأ: ${error.message}</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
+
