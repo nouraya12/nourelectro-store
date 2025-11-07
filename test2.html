@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار ربط Firebase (جديد)</title>
+</head>
+<body>
+    <h1>صفحة اختبار ربط Firebase (جديدة)</h1>
+    <p>هذه الصفحة ستختبر الربط "المُصلَح" (تستخدم `initializeFirestore`).</p>
+    <hr>
+    <h2>النتيجة:</h2>
+    <h1 id="result" style="color: blue; font-size: 2em; border: 2px solid blue; padding: 10px;">
+        جاري الاتصال...
+    </h1>
+
+    <!-- ====================================================== -->
+    <!-- برمجة "المحرك" (Firebase) - نسخة الاختبار المُصلَحة -->
+    <!-- ====================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // *** هذا هو الإصلاح: ***
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            initializeFirestore // <-- الإصلاح 1
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- الخطوة 2: تهيئة Firebase (نفس المفتاح) ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyBSiZVCImHeuTGg37LCqWaGmn-s0CDGoQM",
+          authDomain: "nourelectro-store.firebaseapp.com",
+          projectId: "nourelectro-store",
+          storageBucket: "nourelectro-store.firebasestorage.app",
+          messagingSenderId: "943638742849",
+          appId: "1:943638742849:web:a42dda2e2049a5da0903c0",
+          measurementId: "G-GQQE3691ED"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        
+        // *** هذا هو الإصلاح: ***
+        const db = initializeFirestore(app, {}); // <-- الإصلاح 2
+        
+        // --- (الكود من هنا هو نفسه تماماً) ---
+        
+        const resultElement = document.getElementById('result');
+
+        async function fetchTestMessage() {
+            try {
+                // نحن نبحث في مجلد "test" (الصغير)
+                const querySnapshot = await getDocs(collection(db, "test"));
+
+                if (querySnapshot.empty) {
+                    resultElement.textContent = '[الإصلاح 2] فشل: تم الاتصال، ولكن مجلد "test" فارغ.';
+                    resultElement.style.color = 'orange';
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    resultElement.textContent = data.message; 
+                    resultElement.style.color = 'green';
+                });
+
+            } catch (error) {
+                resultElement.textContent = `[الإصلاح 2] فشل ذريع: حدث خطأ. ${error.message}`;
+                resultElement.style.color = 'red';
+            }
+        }
+        
+        fetchTestMessage();
+    </script>
+</body>
+</html>
+
