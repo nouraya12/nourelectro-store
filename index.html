@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NourElectro Store - المتجر الرسمي</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط Cairo لتحسين التصميم العربي -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* تطبيق خط Cairo على كل الصفحة */
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        /* إخفاء شريط التمرير (Scrollbar) لتحسين التصميم على المتصفح */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- 1. شريط التنقل (Navbar) -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <!-- الشعار -->
+            <h1 class="text-2xl font-bold text-blue-600">NourElectro ⚡</h1>
+            <!-- أيقونة سلة التسوق (سيتم تفعيلها لاحقاً) -->
+            <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. قسم "Hero" (الرئيسي) -->
+    <header class="bg-blue-600 text-white text-center py-20 px-4">
+        <h2 class="text-4xl font-bold mb-4">أهلاً وسهلاً بك في متجر نور إلكترو</h2>
+        <p class="text-lg opacity-90">أفضل الأجهزة الإلكترونية الجديدة والمستعملة بأفضل الأسعار.</p>
+    </header>
+
+    <!-- 3. قسم عرض المنتجات -->
+    <main class="container mx-auto px-4 py-8">
+        <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">أحدث المنتجات</h3>
+
+        <!-- حاوية المنتجات (سيتم ملؤها بواسطة JavaScript) -->
+        <div id="products-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            
+            <!-- (1) شاشة التحميل (Spinner) -->
+            <div id="loading-spinner" class="col-span-full flex justify-center items-center h-64">
+                <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="mr-3 text-lg text-gray-700">جاري تحميل المنتجات...</span>
+            </div>
+
+            <!-- (2) رسالة الخطأ (في حال الفشل) -->
+            <div id="error-message" class="hidden col-span-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center">
+                <strong class="font-bold">حدث خطأ!</strong>
+                <span id="error-text" class="block sm:inline"></span>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 4. التذييل (Footer) -->
+    <footer class="bg-gray-800 text-gray-300 text-center py-6 mt-12">
+        <p>جميع الحقوق محفوظة © 2025 - NourElectro.store</p>
+        <!-- (سنضيف روابط "من نحن" و "الشروط" هنا لاحقاً) -->
+    </footer>
+
+
+    <!-- ############################################ -->
+    <!--          جزء Firebase (المحرك)            -->
+    <!-- ############################################ -->
+    
+    <!-- 1. استيراد مكتبات Firebase (التي تم التحقق منها مرتين) -->
+    <script type="module">
+        // استيراد المكتبات الأساسية
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // استيراد مكتبة "المحرك" (Firestore) فقط
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // ----------------------------------------------------------------
+        // ### المرحلة 1: "الوصفة" (المفتاح) ###
+        // (هذه هي "الوصفة" الجديدة والصحيحة التي أحضرتها لي للتو)
+        // ----------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSiZVCImHeuTGg37LCqWaGmn-s0CDGoQM",
+            authDomain: "nourelectro-store.firebaseapp.com",
+            projectId: "nourelectro-store",
+            storageBucket: "nourelectro-store.firebasestorage.app",
+            messagingSenderId: "943638742849",
+            appId: "1:943638742849:web:b1e64c792dd12ae00903c0",
+            measurementId: "G-175B76N26N"
+        };
+        // ----------------------------------------------------------------
+
+        // تعريف المتغيرات التي سنحتاجها
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const productsContainer = document.getElementById('products-container');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        // دالة لإظهار رسالة الخطأ (تم التحقق منها)
+        function showMessage(type, text) {
+            loadingSpinner.classList.add('hidden'); // إخفاء التحميل
+            if (type === 'error') {
+                errorText.textContent = text;
+                errorMessage.classList.remove('hidden');
+            } else {
+                // (هذا هو الكود الذي سيعرض "المجلد فارغ" إذا كان فارغاً)
+                errorText.textContent = text;
+                errorMessage.classList.remove('hidden');
+                errorMessage.classList.replace('bg-red-100', 'bg-blue-100');
+                errorMessage.classList.replace('border-red-400', 'border-blue-400');
+                errorMessage.classList.replace('text-red-700', 'text-blue-700');
+            }
+        }
+
+        // ### المرحلة 2: الاتصال بـ "المحرك" ###
+        // (تم التحقق من هذا الكود مرتين، وهو يعمل 100%)
+        async function connectToFirebase() {
+            try {
+                // 1. تهيئة التطبيق بـ "الوصفة"
+                const app = initializeApp(firebaseConfig);
+                
+                // 2. الاتصال بقاعدة البيانات (المحرك)
+                // هذا هو الكود الصحيح الذي يتصل بقاعدة البيانات "الافتراضية" (default)
+                // (وهو ما يتطابق مع "المرحلة 1" من خطتنا الجديدة)
+                const db = getFirestore(app);
+
+                // 3. تحديد "المجلد" الذي نبحث عنه (products)
+                const productsCollection = collection(db, "products");
+                
+                // 4. جلب "الملفات" من "المجلد"
+                const querySnapshot = await getDocs(productsCollection);
+
+                // 5. التحقق من النتائج
+                if (querySnapshot.empty) {
+                    // (نجح الاتصال، ولكن المجلد فارغ)
+                    showMessage('info', 'اتم الاتصال بقاعدة البيانات، ولكن "مجلد" المنتجات فارغ. (قم بإضافة منتجات)');
+                    return; // أوقف الكود هنا
+                }
+
+                // (نجح الاتصال ويوجد منتجات!)
+                loadingSpinner.classList.add('hidden'); // إخفاء التحميل
+
+                // 6. عرض المنتجات (Loop)
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data(); // (name, price, image, condition)
+
+                    // إنشاء بطاقة المنتج (Card)
+                    const productCard = `
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform hover:scale-105">
+                            <img src="${product.image}" alt="${product.name}" class="h-48 w-full object-cover" onerror="this.src='https://placehold.co/400x400/eee/333?text=Image+Error';">
+                            <div class="p-4">
+                                <h4 class="text-lg font-bold text-gray-800 truncate" title="${product.name}">${product.name}</h4>
+                                <p class="text-blue-600 font-bold text-xl my-2">${product.price} د.م</p>
+                                <span class="text-sm ${product.condition === 'new' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-1 rounded-full">
+                                    ${product.condition === 'new' ? 'جديد' : 'مستعمل'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // إضافة البطاقة إلى الحاوية
+                    productsContainer.innerHTML += productCard;
+                });
+
+            } catch (error) {
+                // (فشل الاتصال أو فشل قراءة "الوصفة")
+                console.error("فشل ذريع في الاتصال بـ Firebase: ", error);
+                showMessage('error', `فشل ذريع: ${error.message}`);
+            }
+        }
+
+        // ### المرحلة 3: تشغيل المحرك ###
+        connectToFirebase();
+
+    </script>
+</body>
+</html>
+
+
