@@ -1,33 +1,64 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجري الإلكتروني</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>متجري الإلكتروني</title>
+
+  <!-- SEO basics -->
+  <meta name="description" content="متجر بسيط لعرض المنتجات والتواصل لإتمام الطلب عبر واتساب." />
+  <link rel="canonical" href="https://example.com/" />
+
+  <!-- Open Graph (اختياري لكن مفيد للمشاركة) -->
+  <meta property="og:title" content="متجري الإلكتروني" />
+  <meta property="og:description" content="تصفح المنتجات وتواصل معنا لإتمام الطلب عبر واتساب." />
+  <meta property="og:type" content="website" />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <header>
-        <h1>متجري</h1>
-        <nav>
-            <a href="cart.html">السلة 🛒</a>
-        </nav>
-    </header>
+  <header>
+    <div class="container">
+      <h1 aria-label="اسم المتجر">متجري</h1>
+      <nav aria-label="التنقل الرئيسي">
+        <!-- أبقيت الرابط للسلة كما هو -->
+        <a href="cart.html">السلة 🛒</a>
+        <!-- روابط معلوماتية (لا تتطلب JS) -->
+        <a href="about.html">من نحن</a>
+        <a href="terms.html">شروط الاستخدام</a>
+        <a href="privacy.html">سياسة الخصوصية</a>
+        <a href="contact.html">اتصل بنا</a>
+      </nav>
+    </div>
+  </header>
 
-    <main>
-        <div id="product-list-container">
-            </div>
-    </main>
+  <main id="content" class="container" role="main">
+    <h2 class="visually-hidden">قائمة المنتجات</h2>
+    <div id="product-list-container"></div>
+  </main>
 
-    <footer>
-        <nav>
-            <a href="about.html">من نحن</a>
-            <a href="terms.html">شروط الاستخدام</a>
-        </nav>
-        <p>&copy; 2025 متجري. جميع الحقوق محفوظة.</p>
-    </footer>
+  <footer>
+    <nav aria-label="روابط تذييل">
+      <a href="about.html">من نحن</a>
+      <a href="terms.html">شروط الاستخدام</a>
+      <a href="privacy.html">سياسة الخصوصية</a>
+      <a href="contact.html">اتصل بنا</a>
+      <a href="faq.html">الأسئلة الشائعة</a>
+    </nav>
+    <p>&copy; 2025 متجري. جميع الحقوق محفوظة.</p>
+  </footer>
 
-    <script src="app.js" defer></script>
+  <!-- زر واتساب عائم (اختياري) -->
+  <!-- استبدل YOUR_NUMBER برقمك بصيغة دولية مثل 2126XXXXXXXX -->
+  <a
+    class="whatsapp-fab"
+    href="https://wa.me/YOUR_NUMBER?text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%85%D9%86%D8%AA%D8%AC"
+    target="_blank" rel="noopener"
+    aria-label="تواصل عبر واتساب"
+    title="تواصل عبر واتساب"
+  >واتساب</a>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
