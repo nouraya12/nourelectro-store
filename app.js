@@ -1,148 +1,100 @@
-/* app.js — كود JavaScript لعرض المنتجات والتكبير وإضافة للسلة (متوافق مع HTML/CSS المرسلين) */
-"use strict";
+/* ===== Backendless REST ===== */
+const APP_ID   = '14D39C00-FA0E-4E48-B415-8214C199398E';   // تأكد أنه الـ APP ID الصحيح
+const REST_KEY = 'E466FDD7-C03A-4492-A795-EC7539A87F74';   // يجب أن يكون REST API KEY
+const API_URL  = `https://api.backendless.com/${APP_ID}/${REST_KEY}/data/Products`;
 
-/* ========== إعداد Backendless ========== */
-const APP_ID  = "14D39C00-FA0E-4E48-B415-8214C199398E";
-const API_KEY = "E466FDD7-C03A-4492-A795-EC7539A87F74";
-const API_URL = `https://api.backendless.com/${APP_ID}/${API_KEY}/data/Products`;
+/* ===== عناصر الصفحة ===== */
+const container = document.getElementById('product-list-container');
 
-/* ========== مراجع DOM ========== */
-const productListContainer = document.getElementById("product-list-container");
-
-/* ========== أدوات مساعدة ========== */
-const placeholderSVG =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500">
-      <rect width="100%" height="100%" fill="#eeeeee"/>
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
-            font-family="system-ui,-apple-system,sans-serif" font-size="24" fill="#888">
-        لا توجد صورة
-      </text>
-    </svg>
-  `);
-
-function formatPrice(value) {
-  const num = Number(value);
-  if (Number.isNaN(num)) return "غير متوفر";
-  return `د.م ${num.toLocaleString("ar-MA")}`;
+/* رسالة خطأ مرئية على الصفحة */
+function showError(msg) {
+  if (!container) return;
+  container.innerHTML = `
+    <div style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:12px;border-radius:8px">
+      ${msg}
+    </div>`;
 }
 
-function getCart() {
-  try {
-    return JSON.parse(localStorage.getItem("shoppingCart")) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCart(cart) {
-  localStorage.setItem("shoppingCart", JSON.stringify(cart));
-}
-
-function addToCart(item) {
-  const cart = getCart();
-  const index = cart.findIndex(p => p.id === item.id);
-  if (index >= 0) {
-    cart[index].qty = (cart[index].qty || 1) + 1;
-  } else {
-    cart.push({ ...item, qty: 1 });
-  }
-  saveCart(cart);
-}
-
-/* ========== إنشاء بطاقة المنتج ========== */
-function renderProductCard(product) {
-  const card = document.createElement("div");
-  card.className = "product-card";
-
-  const img = document.createElement("img");
-  img.loading = "lazy";
-  img.alt = product.name || "منتج";
-  img.src = product.imageUrl || placeholderSVG;
-  img.addEventListener("click", () => img.classList.toggle("zoomed"));
-
-  const info = document.createElement("div");
-  info.className = "product-info";
-
-  const title = document.createElement("h3");
-  title.textContent = product.name || "منتج بدون اسم";
-
-  const price = document.createElement("p");
-  price.className = "price";
-  price.textContent = formatPrice(product.price);
-
-  const desc = document.createElement("p");
-  desc.textContent = product.description || "";
-
-  const btn = document.createElement("button");
-  btn.className = "add-to-cart-btn";
-  btn.type = "button";
-  btn.textContent = "إضافة إلى السلة";
-  btn.addEventListener("click", () => {
-    addToCart({
-      id: product.objectId || String(product.id || product.name),
-      name: product.name || "منتج",
-      price: Number(product.price) || 0
-    });
-    const original = btn.textContent;
-    btn.textContent = "تمت الإضافة ✅";
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.disabled = false;
-    }, 1500);
-  });
-
-  info.appendChild(title);
-  info.appendChild(price);
-  info.appendChild(desc);
-
-  card.appendChild(img);
-  card.appendChild(info);
-  card.appendChild(btn);
-
+/* بطاقة المنتج */
+function createProductCard(p) {
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  const safeImg = (p.imageUrl || '').startsWith('http') ? p.imageUrl : '';
+  card.innerHTML = `
+    <img src="${safeImg}" alt="${p.name || ''}" loading="lazy">
+    <div class="product-info">
+      <h3>${p.name || ''}</h3>
+      <p class="price">د.م ${Number(p.price || 0).toLocaleString('ar-MA')}</p>
+      <p>${p.description || ''}</p>
+    </div>
+    <button class="add-to-cart-btn"
+      data-product-id="${p.objectId || ''}"
+      data-product-name="${p.name || ''}"
+      data-product-price="${p.price || 0}">
+      إضافة إلى السلة
+    </button>
+  `;
   return card;
 }
 
-/* ========== جلب المنتجات وعرضها ========== */
-async function fetchAndRenderProducts() {
-  if (!productListContainer) return;
+/* الاستماع للأحداث (تكبير الصورة + السلة) */
+function wireEvents(scope=document) {
+  scope.querySelectorAll('.product-card img').forEach(img => {
+    img.addEventListener('click', () => img.classList.toggle('zoomed'));
+  });
 
-  productListContainer.innerHTML = `
-    <div style="padding:1rem;text-align:center;">جارِ تحميل المنتجات…</div>
-  `;
+  scope.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const t = e.currentTarget;
+      const item = {
+        id:   t.dataset.productId,
+        name: t.dataset.productName,
+        price: Number(t.dataset.productPrice || 0)
+      };
+      const cart = JSON.parse(localStorage.getItem('shoppingCart') || '[]');
+      cart.push(item);
+      localStorage.setItem('shoppingCart', JSON.stringify(cart));
+      t.textContent = 'تمت الإضافة! ✅';
+      setTimeout(() => (t.textContent = 'إضافة إلى السلة'), 1500);
+    });
+  });
+}
+
+/* الجلب والعرض */
+async function fetchAndRenderProducts() {
+  if (!container) return;
+
+  container.innerHTML = '<p style="opacity:.7">جاري تحميل المنتجات…</p>';
 
   try {
-    // يمكنك تعديل الاستعلام مثلاً بالفرز أو التحديد حسب حاجتك
-    // مثال: const url = API_URL + '?pageSize=50&sortBy=created%20desc';
-    const url = API_URL;
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(API_URL, {
+      headers: { 'Accept': 'application/json' },
+      // ملاحظة: لا نُرسل مفاتيح في Headers لأننا نستخدم REST عبر المسار
+      cache: 'no-store' // يقلل مشاكل الكاش على GitHub Pages
+    });
 
-    if (!res.ok) throw new Error("فشل الاتصال بـ Backendless");
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status} — ${text}`);
+    }
+
     const products = await res.json();
-    const list = Array.isArray(products) ? products : [];
-
-    if (!list.length) {
-      productListContainer.innerHTML = `
-        <div style="padding:1rem;text-align:center;">لا توجد منتجات حالياً.</div>
-      `;
+    if (!Array.isArray(products) || products.length === 0) {
+      container.innerHTML = '<p>لا توجد منتجات حالياً.</p>';
       return;
     }
 
-    // مسح المحتوى ثم التعبئة
-    productListContainer.innerHTML = "";
-    list.forEach(p => productListContainer.appendChild(renderProductCard(p)));
+    container.innerHTML = '';
+    products.forEach(p => container.appendChild(createProductCard(p)));
+    wireEvents(container);
+
   } catch (err) {
     console.error(err);
-    productListContainer.innerHTML = `
-      <div style="padding:1rem;text-align:center;">
-        عذراً، حدث خطأ أثناء تحميل المنتجات. حاول لاحقاً.
-      </div>
-    `;
+    showError(
+      'تعذّر جلب المنتجات. تحقق من: REST API Key، صلاحية Find لغير المسجلين، إعدادات CORS، وروابط الصور https.'
+    );
   }
 }
 
-/* ========== تشغيل عند التحميل ========== */
-document.addEventListener("DOMContentLoaded", fetchAndRenderProducts);
-```0
+/* تشغيل */
+document.addEventListener('DOMContentLoaded', fetchAndRenderProducts);
