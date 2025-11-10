@@ -1,64 +1,303 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>متجري الإلكتروني</title>
-
-  <!-- SEO basics -->
-  <meta name="description" content="متجر بسيط لعرض المنتجات والتواصل لإتمام الطلب عبر واتساب." />
-  <link rel="canonical" href="https://example.com/" />
-
-  <!-- Open Graph (اختياري لكن مفيد للمشاركة) -->
-  <meta property="og:title" content="متجري الإلكتروني" />
-  <meta property="og:description" content="تصفح المنتجات وتواصل معنا لإتمام الطلب عبر واتساب." />
-  <meta property="og:type" content="website" />
-
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>متجري</title>
+  <meta name="description" content="متجر إلكتروني بسيط مع إتمام الطلب عبر واتساب" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext x='0' y='48' font-size='48'%3E🛍️%3C/text%3E%3C/svg%3E">
+  <style>
+    :root{
+      --bg:#f5f6f7;--card:#fff;--text:#222;--muted:#666;--brand:#0a84ff;--brand-dark:#086bd0;--danger:#e74c3c;
+      --shadow:0 2px 8px rgba(0,0,0,.08)
+    }
+    *{box-sizing:border-box}html,body{margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+    a{color:inherit;text-decoration:none}
+    header,footer{background:#333;color:#fff}
+    header{position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+    .wrap{max-width:1100px;margin:auto;padding:0 16px}
+    .head{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0}
+    .head h1{font-size:1.25rem;margin:0}
+    nav a{margin:0 .5rem;opacity:.9}
+    nav a:hover{opacity:1;color:var(--brand)}
+    .toolbar{display:flex;gap:8px;align-items:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border:0;border-radius:10px;padding:10px 14px;background:var(--brand);color:#fff;cursor:pointer;box-shadow:var(--shadow)}
+    .btn:hover{background:var(--brand-dark)}
+    .btn.ghost{background:transparent;border:1px solid #555;color:#fff}
+    main{padding:18px 0}
+    h2.section{font-size:1.4rem;margin:12px 0 18px}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    .imgbox{position:relative;background:#eee;aspect-ratio:4/3;overflow:hidden}
+    .imgbox img{width:100%;height:100%;object-fit:cover;transition:transform .25s;cursor:zoom-in}
+    .imgbox img:hover{transform:scale(1.03)}
+    .thumbs{display:flex;gap:6px;padding:8px;overflow:auto}
+    .thumbs img{width:54px;height:54px;border-radius:8px;object-fit:cover;cursor:pointer;border:2px solid transparent}
+    .thumbs img.active{border-color:var(--brand)}
+    .content{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .title{font-size:1.05rem;font-weight:700}
+    .price{color:var(--brand);font-weight:800}
+    .muted{color:var(--muted);font-size:.92rem}
+    .card .actions{padding:12px 14px;display:flex;gap:8px}
+    .floating-wa{position:fixed;left:16px;bottom:16px;background:#25D366;color:#fff;border-radius:999px;padding:12px 18px;box-shadow:var(--shadow);z-index:40}
+    .drawer{position:fixed;inset:0;display:none}
+    .drawer.open{display:block}
+    .drawer .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+    .drawer .panel{position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;max-width:520px;width:100%;height:min(90vh,720px);background:#fff;border-radius:16px;overflow:auto;box-shadow:var(--shadow)}
+    .drawer .panel header{background:#fff;color:var(--text);position:sticky;top:0;padding:12px 16px;border-bottom:1px solid #eee}
+    .drawer .panel .body{padding:14px}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed #eee}
+    .row:last-child{border:0}
+    .qty{display:flex;gap:6px;align-items:center}
+    .qty button{width:28px;height:28px;border-radius:8px;border:1px solid #ddd;background:#fafafa;cursor:pointer}
+    .total{font-size:1.1rem;font-weight:800}
+    form .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    form input, form textarea{padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-family:inherit}
+    .alert{padding:10px 12px;border-radius:10px;background:#fff7e6;border:1px solid #ffe1a3;color:#8a5a00;margin:8px 0}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:60}
+    .modal.open{display:flex}
+    .modal img{max-width:95vw;max-height:85vh;border-radius:10px}
+    footer{margin-top:24px}
+    footer .foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:14px 0}
+    @media (max-width:520px){.drawer .panel{max-width:none;border-radius:14px}}
+  </style>
 </head>
 <body>
 
-  <header>
-    <div class="container">
-      <h1 aria-label="اسم المتجر">متجري</h1>
-      <nav aria-label="التنقل الرئيسي">
-        <!-- أبقيت الرابط للسلة كما هو -->
-        <a href="cart.html">السلة 🛒</a>
-        <!-- روابط معلوماتية (لا تتطلب JS) -->
-        <a href="about.html">من نحن</a>
-        <a href="terms.html">شروط الاستخدام</a>
-        <a href="privacy.html">سياسة الخصوصية</a>
-        <a href="contact.html">اتصل بنا</a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="content" class="container" role="main">
-    <h2 class="visually-hidden">قائمة المنتجات</h2>
-    <div id="product-list-container"></div>
-  </main>
-
-  <footer>
-    <nav aria-label="روابط تذييل">
-      <a href="about.html">من نحن</a>
-      <a href="terms.html">شروط الاستخدام</a>
-      <a href="privacy.html">سياسة الخصوصية</a>
-      <a href="contact.html">اتصل بنا</a>
-      <a href="faq.html">الأسئلة الشائعة</a>
+<header>
+  <div class="wrap head">
+    <h1>متجري</h1>
+    <nav>
+      <a href="#about">من نحن</a>
+      <a href="#faq">الأسئلة الشائعة</a>
+      <a href="#privacy">سياسة الخصوصية</a>
+      <a href="#terms">شروط الاستخدام</a>
+      <a href="#" id="open-cart">السلة 🛒</a>
     </nav>
-    <p>&copy; 2025 متجري. جميع الحقوق محفوظة.</p>
-  </footer>
+  </div>
+</header>
 
-  <!-- زر واتساب عائم (اختياري) -->
-  <!-- استبدل YOUR_NUMBER برقمك بصيغة دولية مثل 2126XXXXXXXX -->
-  <a
-    class="whatsapp-fab"
-    href="https://wa.me/YOUR_NUMBER?text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%85%D9%86%D8%AA%D8%AC"
-    target="_blank" rel="noopener"
-    aria-label="تواصل عبر واتساب"
-    title="تواصل عبر واتساب"
-  >واتساب</a>
+<main class="wrap">
+  <h2 class="section">قائمة المنتجات</h2>
+  <div id="product-list" class="grid" aria-live="polite"></div>
+  <div id="status" class="muted" style="padding:12px 2px;"></div>
 
-  <script src="app.js" defer></script>
+  <section id="about"><h2 class="section">من نحن</h2><p class="muted">نص تعريفي مختصر عن المتجر.</p></section>
+  <section id="faq"><h2 class="section">الأسئلة الشائعة</h2><p class="muted">أضف أكثر الأسئلة تكراراً وإجاباتها.</p></section>
+  <section id="privacy"><h2 class="section">سياسة الخصوصية</h2><p class="muted">كيف نتعامل مع بيانات العملاء.</p></section>
+  <section id="terms"><h2 class="section">شروط الاستخدام</h2><p class="muted">القواعد العامة لاستخدام الموقع.</p></section>
+</main>
+
+<a class="floating-wa" id="wa-float" href="#" aria-label="واتساب">واتساب</a>
+
+<footer>
+  <div class="wrap foot">
+    <nav>
+      <a href="#about">من نحن</a> ·
+      <a href="#privacy">سياسة الخصوصية</a> ·
+      <a href="#terms">شروط الاستخدام</a> ·
+      <a href="#faq">الأسئلة الشائعة</a>
+    </nav>
+    <small>© 2025 متجري. جميع الحقوق محفوظة.</small>
+  </div>
+</footer>
+
+<div class="drawer" id="cart-drawer" role="dialog" aria-modal="true">
+  <div class="backdrop" id="close-cart"></div>
+  <div class="panel">
+    <header class="wrap head" style="padding:10px 14px">
+      <strong>سلة التسوق</strong>
+      <button class="btn ghost" id="close-cart-2">إغلاق</button>
+    </header>
+    <div class="body">
+      <div id="cart-items"></div>
+      <div class="row">
+        <div class="total">الإجمالي: <span id="cart-total">0</span> د.م</div>
+        <button class="btn" id="clear-cart">تفريغ السلة</button>
+      </div>
+
+      <div class="alert">لن تتم أي دفعات عبر الموقع. سيتم إرسال تفاصيل الطلب إلى واتساب للتأكيد.</div>
+
+      <form id="checkout-form">
+        <div class="field"><label>الاسم الكامل</label><input required name="name"></div>
+        <div class="field"><label>رقم الهاتف</label><input required name="phone"></div>
+        <div class="field"><label>المدينة</label><input required name="city"></div>
+        <button class="btn" type="submit">إتمام الصفقة عبر واتساب</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="img-modal"><img alt="صورة المنتج" id="modal-img"></div>
+
+<script>
+const APP_ID  = "14D39C00-FA0E-4E48-B415-8214C199398E";
+const API_KEY = "E466FDD7-C03A-4492-A795-EC7539A87F74";
+const TABLE   = "Products";
+const API_URL = `https://api.backendless.com/${APP_ID}/${API_KEY}/data/${TABLE}?pageSize=100&sortBy=created%20desc`;
+
+const listEl   = document.getElementById('product-list');
+const statusEl = document.getElementById('status');
+
+const FALLBACK_SRC =
+"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' "
++"height='450'%3E%3Crect width='100%25' height='100%25' fill='%23e9ecef'/%3E"
++"%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' "
++"fill='%2399a' font-size='22'%3Eصورة%20غير%20متوفرة%3C/text%3E%3C/svg%3E";
+
+async function loadProducts(){
+  try{
+    statusEl.textContent = "جاري تحميل المنتجات...";
+    const res = await fetch(API_URL);
+    if(!res.ok) throw new Error("فشل الاتصال");
+    const items = await res.json();
+    if(!Array.isArray(items) || items.length===0){
+      statusEl.textContent = "لا توجد منتجات.";
+      return;
+    }
+    statusEl.textContent = "";
+    renderProducts(items);
+  }catch{
+    statusEl.textContent = "خطأ: تأكد من APP_ID و API_KEY.";
+  }
+}
+
+function renderProducts(products){
+  listEl.innerHTML = "";
+  products.forEach(p=>{
+    const images = normalizeImages(p);
+    const card = document.createElement('article');
+    card.className = "card";
+
+    const imgbox = document.createElement('div');
+    imgbox.className = "imgbox";
+    const main = document.createElement('img');
+    main.src = images[0] || FALLBACK_SRC;
+    main.alt = p.name || "صورة";
+    main.onclick = ()=>openImage(main.src);
+    imgbox.appendChild(main);
+    card.appendChild(imgbox);
+
+    if(images.length>1){
+      const thumbs = document.createElement('div');
+      thumbs.className="thumbs";
+      images.forEach((src,i)=>{
+        const t=document.createElement('img');
+        t.src=src;
+        if(i===0) t.classList.add("active");
+        t.onclick = ()=>{
+          main.src=src;
+          [...thumbs.children].forEach(x=>x.classList.remove("active"));
+          t.classList.add("active");
+        };
+        thumbs.appendChild(t);
+      });
+      card.appendChild(thumbs);
+    }
+
+    const c = document.createElement('div');
+    c.className="content";
+    c.innerHTML = `
+      <div class="title">${p.name||""}</div>
+      <div class="price">${formatPrice(p.price)} د.م</div>
+      <div class="muted">${p.description||""}</div>
+    `;
+    card.appendChild(c);
+
+    const actions=document.createElement('div');
+    actions.className="actions";
+    const btn=document.createElement('button');
+    btn.className="btn";
+    btn.textContent="إضافة إلى السلة";
+    btn.onclick = ()=>{ addToCart({id:p.objectId,name:p.name,price:p.price,image:images[0]}); btn.textContent="تم ✓"; setTimeout(()=>btn.textContent="إضافة إلى السلة",1200); };
+    actions.appendChild(btn);
+    card.appendChild(actions);
+
+    listEl.appendChild(card);
+  });
+}
+
+function normalizeImages(p){
+  if(Array.isArray(p.images)) return p.images;
+  if(typeof p.imageUrl==="string") return [p.imageUrl];
+  return [];
+}
+
+const CART="shoppingCart";
+function readCart(){ try{return JSON.parse(localStorage.getItem(CART))||[]}catch{return[]} }
+function writeCart(c){ localStorage.setItem(CART,JSON.stringify(c)); }
+
+function addToCart(it){
+  const cart=readCart();
+  const i=cart.findIndex(x=>x.id===it.id);
+  if(i>-1) cart[i].qty++;
+  else cart.push({...it,qty:1});
+  writeCart(cart);
+  renderCart();
+}
+
+const drawer=document.getElementById('cart-drawer');
+document.getElementById('open-cart').onclick=()=>{drawer.classList.add("open");renderCart();};
+document.getElementById('close-cart').onclick=()=>drawer.classList.remove("open");
+document.getElementById('close-cart-2').onclick=()=>drawer.classList.remove("open");
+document.getElementById('clear-cart').onclick=()=>{writeCart([]);renderCart();};
+
+function renderCart(){
+  const box=document.getElementById('cart-items');
+  box.innerHTML="";
+  const cart=readCart();
+  let total=0;
+  cart.forEach((p,i)=>{
+    total+=p.price*p.qty;
+    const row=document.createElement('div');
+    row.className="row";
+    row.innerHTML=`
+      <div><strong>${p.name}</strong> — ${p.price} د.م × ${p.qty}</div>
+      <div class="qty">
+        <button data-i="${i}" data-op="-" >-</button>
+        <button data-i="${i}" data-op="+" >+</button>
+        <button data-i="${i}" data-op="x" >🗑</button>
+      </div>`;
+    box.appendChild(row);
+  });
+  document.getElementById('cart-total').textContent=formatPrice(total);
+
+  box.querySelectorAll("button").forEach(b=>{
+    b.onclick=()=>{
+      const i=b.dataset.i;
+      const op=b.dataset.op;
+      const cart=readCart();
+      if(op==="+") cart[i].qty++;
+      if(op==="-" && cart[i].qty>1) cart[i].qty--;
+      if(op==="x") cart.splice(i,1);
+      writeCart(cart);
+      renderCart();
+    };
+  });
+}
+
+document.getElementById('checkout-form').onsubmit=e=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const name=fd.get("name");
+  const phone=fd.get("phone");
+  const city=fd.get("city");
+  const cart=readCart();
+  let text=`طلب جديد:%0Aالاسم: ${name}%0Aالهاتف: ${phone}%0Aالمدينة: ${city}%0A`;
+  cart.forEach(p=>text+=`%0A• ${p.name} × ${p.qty} = ${p.price*p.qty}`);
+  window.open(`https://wa.me/${phone}?text=${text}`,"_blank");
+};
+
+const imgModal=document.getElementById("img-modal");
+const modalImg=document.getElementById("modal-img");
+function openImage(src){modalImg.src=src;imgModal.classList.add("open");}
+imgModal.onclick=()=>imgModal.classList.remove("open");
+
+function formatPrice(v){return Number(v||0).toLocaleString('ar-MA');}
+
+loadProducts();
+</script>
+
 </body>
 </html>
